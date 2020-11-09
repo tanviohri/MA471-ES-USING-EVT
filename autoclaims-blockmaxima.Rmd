@@ -1,6 +1,6 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output: 
 --- 
 
 ```{r}
@@ -11,6 +11,8 @@ if (!require("nortest")) { install.packages("nortest"); require("nortest") }
 if (!require("insuranceData")) { install.packages("insuranceData"); require("insuranceData") }
 if (!require("extRemes")) { install.packages("extRemes"); require("extRemes") }
 if (!require("VaRES")) { install.packages("VaRES"); require("VaRES") }
+if (!require("vars")) { install.packages("vars"); require("vars") }
+if (!require("PerformanceAnalytics")) { install.packages("PerformanceAnalytics"); require("PerformanceAnalytics") }
 ```
 
 
@@ -22,6 +24,8 @@ library(nortest)
 library(insuranceData)
 library(extRemes)
 library(VaRES)
+library(vars)
+library(PerformanceAnalytics)
 ```
 
 The AutoClaims dataset contains data on claims experience from a large midwestern (US) P&C insurer for private motor insurance. The dependent variable is the amount paid on a closed claim, in $. Claims that were not closed by year end are handled separately.
@@ -64,13 +68,34 @@ plot(density(blocks), main="Density Function of AutoClaims")
 x <- seq(-10000, 70000, by=1)
 Frechet_density <- dgev(x, mu, sigma, epsilon)
 #Since NaNs are produced, we must used na.omit to remove these values
-Frechet_density <- na.omit(Frechet_density)
-plot(Frechet_density, main="Density Function of Fitted Frechet")
+plot(na.omit(Frechet_density), main="Density Function of Fitted Frechet")
 ```
+
+```{r}
+FrechetDistribution <- data.frame(x, Frechet_density)
+names(FrechetDistribution) <- c("Time", "Observations")
+frechet_var_ts <- ts(na.omit(FrechetDistribution))
+var.2c <- VAR(frechet_var_ts, p = 2, type = "const")
+
+# Diagnostic Testing
+# Arch Test
+arch.test(var.2c)
+# Normality Test
+normality.test(var.2c)
+# Predict the values for the next 8 days
+var.2c.prd <- predict(var.2c, n.ahead = 8, ci = 0.9)
+plot(var.2c.prd)
+# The conditional drawdown is the the mean of the worst 0.99% drawdowns
+CDD(frechet_var_ts, weights = NULL, geometric = TRUE, invert = TRUE, p = 0.99)
+# Calculates Expected Shortfall (also known as) Conditional Value at Risk
+# Using modified Cornish Fisher calc for non-normal distribution
+ES(frechet_var_ts, p=.99, method="modified")
+```
+
 
 Calculating the Expected Shortfall
 ```{r}
 p = 0.99
-#vargev(p, mu, sigma, epsilon)
+vargev(p, mu, sigma, epsilon)
 esgev(p, mu, sigma, epsilon)
 ```
