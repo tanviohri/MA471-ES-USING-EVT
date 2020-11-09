@@ -1,0 +1,76 @@
+---
+title: "R Notebook"
+output: html_notebook
+--- 
+
+```{r}
+if (!require("ggplot2")) { install.packages("ggplot2"); require("ggplot2") }
+if (!require("evd")) { install.packages("evd"); require("evd") }
+if (!require("evir")) { install.packages("evir"); require("evir") }
+if (!require("nortest")) { install.packages("nortest"); require("nortest") }
+if (!require("insuranceData")) { install.packages("insuranceData"); require("insuranceData") }
+if (!require("extRemes")) { install.packages("extRemes"); require("extRemes") }
+if (!require("VaRES")) { install.packages("VaRES"); require("VaRES") }
+```
+
+
+```{r}
+library(ggplot2)
+library(evd)
+library(evir)
+library(nortest)
+library(insuranceData)
+library(extRemes)
+library(VaRES)
+```
+
+The AutoClaims dataset contains data on claims experience from a large midwestern (US) P&C insurer for private motor insurance. The dependent variable is the amount paid on a closed claim, in $. Claims that were not closed by year end are handled separately.
+
+```{r}
+data(AutoClaims)
+dataset <- AutoClaims$PAID
+summary(dataset)
+hist(dataset)
+```
+Block Maxima
+```{r}
+blocks <- blockmaxxer.data.frame(data.frame(dataset), blen=100, span=67)
+blocks
+hist(blocks)
+```
+
+Anderson-Darling Test of robustness of the data
+
+```{r}
+ad.test(blocks)
+```
+gev: maximum likelihood estimation of the 3-parameter generalized extreme value (GEV) distribution. 
+fgev: maximum-likelihood fitting for the generalized extreme value distribution, including linear modelling of the location parameter, and allowing any of the parameters to be held fixed if desired.
+```{r}
+GEV <- gev(blocks)
+fit <- fgev(GEV$data, std.err = FALSE)
+plot.gev(GEV)
+fit
+epsilon = fit$estimate[3]
+sigma = fit$estimate[2]
+mu = fit$estimate[1]
+```
+
+Since shape parameter > 0, the data follows a Fréchet distribution.
+Plot
+```{r}
+par(mfrow=c(1,2))
+plot(density(blocks), main="Density Function of AutoClaims")
+x <- seq(-10000, 70000, by=1)
+Frechet_density <- dgev(x, mu, sigma, epsilon)
+#Since NaNs are produced, we must used na.omit to remove these values
+Frechet_density <- na.omit(Frechet_density)
+plot(Frechet_density, main="Density Function of Fitted Frechet")
+```
+
+Calculating the Expected Shortfall
+```{r}
+p = 0.99
+#vargev(p, mu, sigma, epsilon)
+esgev(p, mu, sigma, epsilon)
+```
