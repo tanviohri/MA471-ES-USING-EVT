@@ -103,5 +103,5 @@ esgev(p, mu, sigma, epsilon)
 ```{r}
 quantile(blocks,0.99)
 mean(blocks[blocks>=quantile(dataset,0.99)])
-mean(blocks)
+print(epsilon)
 ```

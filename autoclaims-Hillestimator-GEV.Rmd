@@ -1,0 +1,87 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+if (!require("ReIns")) { install.packages("ReIns"); require("ReIns") }
+if (!require("ggplot2")) { install.packages("ggplot2"); require("ggplot2") }
+if (!require("evd")) { install.packages("evd"); require("evd") }
+if (!require("evir")) { install.packages("evir"); require("evir") }
+if (!require("nortest")) { install.packages("nortest"); require("nortest") }
+if (!require("insuranceData")) { install.packages("insuranceData"); require("insuranceData") }
+if (!require("extRemes")) { install.packages("extRemes"); require("extRemes") }
+if (!require("VaRES")) { install.packages("VaRES"); require("VaRES") }
+if (!require("vars")) { install.packages("vars"); require("vars") }
+if (!require("PerformanceAnalytics")) { install.packages("PerformanceAnalytics"); require("PerformanceAnalytics") }
+```
+
+```{r}
+library("ReIns")
+library(ggplot2)
+library(evd)
+library(evir)
+library(nortest)
+library(insuranceData)
+library(extRemes)
+library(VaRES)
+library(vars)
+library(PerformanceAnalytics)
+```
+
+```{r}
+data(AutoClaims)
+dataset <- AutoClaims$PAID
+summary(dataset)
+hist(dataset)
+```
+```{r}
+GEVHill<-function(data)
+{
+  data <-sort(data,decreasing = TRUE)
+  #print(log(data[1:100]))
+  gamma <-character(95)
+  for(k in 5:100)
+    #print(mean(log(data[1:k]) - log(data[k])))
+    gamma[k - 4]<-1/mean(log(data[1:k]) - log(data[k]))
+  
+  print(gamma)
+  k<- 5:100;
+  plot(k,gamma,main = "Hill estimates")
+  return (gamma)
+}
+
+```
+
+
+```{r}
+#Hill(dataset,k = TRUE,logk = FALSE,plot = TRUE)
+shape<-GEVHill(dataset)
+#The values are not matching the values for shape parameter obtained by Block Maxima method
+#We try estimating the ES using shape parameter but it's not close to the value of ES calculated using given data
+```
+```{r}
+mu<-mean(dataset)
+sigma<-sqrt(var(dataset))
+print(mu)
+print(sigma)
+print(shape[18])
+
+vargev(p, mu, sigma, as.double(shape[15]))
+esgev(p, mu, sigma, as.double(shape[15]))
+```
+
