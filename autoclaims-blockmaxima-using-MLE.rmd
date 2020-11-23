@@ -38,7 +38,7 @@ hist(dataset)
 ```
 Block Maxima
 ```{r}
-blocks <- blockmaxxer.data.frame(data.frame(dataset), blen=200, span=33)
+blocks <- blockmaxxer.data.frame(data.frame(dataset), blen=400, span=16)
 blocks
 hist(blocks)
 ```
