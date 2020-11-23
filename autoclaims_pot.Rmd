@@ -1,5 +1,5 @@
 ---
-title: 'Lesson 5: EVT in Action'
+title: 'Expected Shortfall in Autoclaims Dataset using Peak Over Threshold'
 output:
   pdf_document: default
   html_notebook: default
@@ -16,6 +16,7 @@ install.packages("quantmod")
 ```
 
 ```{r}
+#using InsuranceData package which contains the dataclaims
 install.packages("insuranceData")
 ```
 
@@ -29,6 +30,7 @@ library(insuranceData)
 ```
 
 ```{r}
+#We are using "AutoClaims" dataset.  It contains claims experience from a large midwestern (US)property and casualty insurer for private passenger automobile insurance. 
 data(AutoClaims)
 ```
 
@@ -36,10 +38,10 @@ data(AutoClaims)
 head(AutoClaims$PAID)
 ```
 
-The first thing to do is to have a look at the data and at some basic statistics.
+The first thing to do is to have a look at the data and at some basic statistics. 
 
 ```{r}
-hist(AutoClaims$PAID, 30, col=2) # Try to produce a better plot with ggplot2
+hist(AutoClaims$PAID, 30, col=2)
 ```
 
 ```{r}
@@ -67,7 +69,7 @@ The plot is easily made with the function `emplot` (empirical plot). It is impor
 emplot(AutoClaims$PAID,'xy')
 ```
 
-A clear negative linear slope is present. This is a first signal of the fat tailed nature of the data. But remember: a Zipf plot verifies a necessary yet not sufficient condition!
+A clear negative linear slope is present. This is a first signal of the fat tailed nature of the data. But a Zipf plot verifies a necessary yet not sufficient condition!
 Looking at the range of the plot, the credibility of the plot seems ok. The mean and the variance are below 5, while we observe a maximum which is two orders of magnitude larger.
 
 Given that linearity appears from the very beginning, we can think that our AutoClaims$PAID claims actually follow a pure power law.
@@ -87,7 +89,9 @@ To build a CP, we can use the functions in the `ineq` library.
 library(ineq)
 sort_claims=sort(AutoClaims$PAID) # We sort the data
 n=length(AutoClaims$PAID)
+
 CP=c() #Empty array for storage
+
 for (i in 1:n) {
   CP[i]=ineq(sort_claims[i:n],type="Gini") # Truncated Gini
 }
@@ -133,7 +137,7 @@ hill(AutoClaims$PAID)
 ```
 
 
-This is indeed the case. A value of alpha around 1.5 is highly plausible looking at the plot. The stability seems to kick in around a threshold of 5.5 (look at the numbers on top). In terms if xi we expect about 1/1.5, that is 0.6 or so. In EVT, my suggestion is not to waste your time too much with second or third decimals. The first one is more than enough. 
+This is indeed the case. A value of alpha around 3 is highly plausible looking at the plot. The stability seems to kick in around a threshold of 3610 (look at the numbers on top). 
 
 The 5.5 threshold seems compatible with both the Zipf plot and the meplot.
 About 10% of all the claims lie above the threshold.
@@ -145,11 +149,11 @@ fit=gpd(AutoClaims$PAID,5.5)
 tail(fit)
 ```
 
-We get a xi=0.6 and significant (the s.e. is 0.12). For beta (or sigma in other parametrizations) we have 4.33, also significant (why?).
+We get a xi=0.21 and significant. For beta (or sigma in other parametrizations) we have 4.33, also significant 
 
 Let us verify the fitting of the tail. 
-We can just write the following. Please remove the commenting #.
-Notice that an interactive menu opens with `plot(fit)` (in the pdf it will not show properly, please run the code).
+
+Notice that an interactive menu opens with `plot(fit)` 
 
 ```{r}
 plot(fit)
@@ -157,8 +161,8 @@ plot(fit)
 ```
 
 The fitting is quite satisfactory.
+Let's try for a higher threshold
 
-Would a higher threshold change the value of xi?
 
 ```{r}
 gpd(AutoClaims$PAID,20)$par.ests[1]
@@ -167,7 +171,7 @@ gpd(AutoClaims$PAID,20)$par.ses[1]
 
 Qualitatively we would say no: a higher threshold preserves the xi.
 
-A value of 0.6 or so seems plausible and in line with our previous findings.
+A value of 0.22 or so seems plausible and in line with our previous findings.
 Notice that it is confirmed that the second moment is not finite!
 
 Given the GPD fit, we could be interested in estimating a very high quantile (VaR) and the corresponding ES. This approach is much more reliable than using empirical estimates, especially under fat tails.
@@ -211,9 +215,9 @@ quantile(AutoClaims$PAID,0.9999) #99.99% Var
 mean(AutoClaims$PAID[AutoClaims$PAID>=quantile(AutoClaims$PAID,0.9999)]) #99.99% ES
 ```
 
-Oops! EVT definitely wins.
 
-Two useful functions I also suggest to check are `gpd.q` and `gpd.sfall`, which also provide confidence intervals. They need to be combined with `tailplot`.
+
+"gpd.q` and `gpd.sfall`  also provide confidence intervals. They need to be combined with `tailplot`.
 
 For example
 
