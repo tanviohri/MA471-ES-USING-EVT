@@ -52,7 +52,7 @@ Anderson-Darling Test of robustness of the data
 ```{r}
 ad.test(blocks)
 ```
-gevFit and gumbelFit estimate the parameters either by the probability weighted moment method("pwm") or by maximum log likelihood estimation ("mle"). We have used PWM method here.
+gevFit estimate the parameters either by the probability weighted moment method("pwm") or by maximum log likelihood estimation ("mle"). We have used PWM method here.
 ```{r}
 fittedGEV <- gevFit(dataset, block = 200, type = c("pwm"))
 epsilon = fittedGEV@fit$par.ests[1]
@@ -76,6 +76,12 @@ plot(na.omit(Frechet_density), main="Density Function of Fitted Frechet")
 Calculating the Expected Shortfall
 ```{r}
 p = 0.99
+vargev(p, mu, sigma, epsilon)
+esgev(p, mu, sigma, epsilon)
+p = 0.999
+vargev(p, mu, sigma, epsilon)
+esgev(p, mu, sigma, epsilon)
+p = 0.9999
 vargev(p, mu, sigma, epsilon)
 esgev(p, mu, sigma, epsilon)
 ```
