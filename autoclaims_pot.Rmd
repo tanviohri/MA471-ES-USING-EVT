@@ -70,7 +70,7 @@ emplot(AutoClaims$PAID,'xy')
 ```
 
 A clear negative linear slope is present. This is a first signal of the fat tailed nature of the data. But a Zipf plot verifies a necessary yet not sufficient condition!
-Looking at the range of the plot, the credibility of the plot seems ok. The mean and the variance are below 5, while we observe a maximum which is two orders of magnitude larger.
+Looking at the range of the plot, the credibility of the plot seems ok. 
 
 Given that linearity appears from the very beginning, we can think that our AutoClaims$PAID claims actually follow a pure power law.
 
@@ -130,26 +130,27 @@ We can see that for the first moment convergence is clear, while for the others 
 If confirmed, a similar finding would tell us that the standard deviation we have computed above is useless fo inference.
 
 A Hill plot is an excellent way to give extra substance to what we have just said about the moments.
-If our guesses are correct, we expect an alpha between 1 and 2, or a xi smaller than 1 but larger than 0.5
+
 
 ```{r}
 hill(AutoClaims$PAID)
 ```
 
 
-This is indeed the case. A value of alpha around 3 is highly plausible looking at the plot. The stability seems to kick in around a threshold of 3610 (look at the numbers on top). 
+This is indeed the case. A value of alpha around 3 is highly plausible looking at the plot. The stability seems to kick in around a threshold of 3600 (look at the numbers on top). 
 
-The 5.5 threshold seems compatible with both the Zipf plot and the meplot.
-About 10% of all the claims lie above the threshold.
+The 3600 threshold seems compatible with both the Zipf plot and the meplot.
 
 Let us fit a GPD above such a threshold. If the fit is reliable, the tail parameter should be stable under higher thresholds.
 
+
+
 ```{r}
-fit=gpd(AutoClaims$PAID,5.5)
+fit=gpd(AutoClaims$PAID,3600)
 tail(fit)
 ```
 
-We get a xi=0.21 and significant. For beta (or sigma in other parametrizations) we have 4.33, also significant 
+We get a xi=0.23 and significant. For beta (or sigma in other parametrizations) we have 2493.87, also significant 
 
 Let us verify the fitting of the tail. 
 
@@ -205,7 +206,7 @@ quantile(AutoClaims$PAID,0.999) #99.9% Var
 mean(AutoClaims$PAID[AutoClaims$PAID>=quantile(AutoClaims$PAID,0.999)]) #99.9% ES
 ```
 
-Notice that in this case also the empirical VaR is less reliable.
+
 
 And for 99.99? We are really zooming into the tail here. Empirically it is like we are considering less than 1 observation in the sample!
 
@@ -214,7 +215,7 @@ riskmeasures(fit,0.9999)
 quantile(AutoClaims$PAID,0.9999) #99.99% Var
 mean(AutoClaims$PAID[AutoClaims$PAID>=quantile(AutoClaims$PAID,0.9999)]) #99.99% ES
 ```
-
+Notice that in this case also the empirical VaR is less reliable.
 
 
 "gpd.q` and `gpd.sfall`  also provide confidence intervals. They need to be combined with `tailplot`.
