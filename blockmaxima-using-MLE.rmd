@@ -76,11 +76,8 @@ plot(na.omit(Frechet_density), main="Density Function of Fitted Frechet")
 Calculating the Expected Shortfall
 ```{r}
 p = 0.99
-vargev(p, mu, sigma, epsilon)
 esgev(p, mu, sigma, epsilon)
 ```
 ```{r}
-quantile(blocks,0.99)
 mean(blocks[blocks>=quantile(dataset,0.99)])
-print(epsilon)
 ```
